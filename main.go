@@ -26,17 +26,18 @@ func crawl(content []byte) *map[string]string {
 	data := make(map[string]string)
 	stringContent := string(content)
 
-	temperatureRegex := regexp.MustCompile(`(?i)<div class="current-weather__thermometer current-weather__thermometer_type_now">(.*?)</div>`)
+	temperatureRegex := regexp.MustCompile(`(?i)<span class="temp__value">(.*?)</span>`)
 	data["temperature"] = temperatureRegex.FindStringSubmatch(stringContent)[1]
 
-	cityRegex := regexp.MustCompile(`(?i)<h1 class="title title_level_1">(.*?)((&nbsp;)*<.*?>)*</h1>`)
-	data["city"] = cityRegex.FindStringSubmatch(stringContent)[1]
+	cityRegex := regexp.MustCompile(`(?i)<h1 class="title title_level_1">Погода в <span class="string-with-sticky-item">(.*?)<div class=`)
+	data["city"] = "Погода в " + cityRegex.FindStringSubmatch(stringContent)[1]
 
-	stateRegex := regexp.MustCompile(`(?i)<span class="current-weather__comment">(.*?)</span>`)
-	data["state"] = stateRegex.FindStringSubmatch(stringContent)[1]
+	//stateRegex := regexp.MustCompile(`(?i)<span class="current-weather__comment">(.*?)</span>`)
+	//data["state"] = stateRegex.FindStringSubmatch(stringContent)[1]
 
-	windRegex := regexp.MustCompile(`<span class="wind-speed">(.*?)</span>`)
+	windRegex := regexp.MustCompile(`<span class="wind-speed">(.*?)</span> <span class="fact__unit">(.*?), <abbr`)
 	data["wind"] = windRegex.FindStringSubmatch(stringContent)[1]
+	data["windUnit"] = windRegex.FindStringSubmatch(stringContent)[2]
 
 	return &data
 }
@@ -51,8 +52,8 @@ func formatOutputData(info *map[string]string) (output string) {
 	output += data["city"] + " #\n"
 	output += strings.Repeat("#", cityLength)
 	output += "\n\n"
-	output += "Temperature: " + data["temperature"] + " 🌡\n"
-	output += "State: " + strings.Title(data["state"]) + " "
+	output += "Temperature: " + data["temperature"] + " 🌡"
+	//output += "State: " + strings.Title(data["state"]) + " "
 
 	states := map[string]string{
 		"ясно": "☀️",
@@ -67,7 +68,7 @@ func formatOutputData(info *map[string]string) (output string) {
 		}
 	}
 
-	output += "\nWind: " + data["wind"] + " 💨"
+	output += "\nWind: " + data["wind"] + " " + data["windUnit"] + " 💨"
 
 	return
 }
